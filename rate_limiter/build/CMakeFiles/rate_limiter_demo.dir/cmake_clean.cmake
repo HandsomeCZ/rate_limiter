@@ -1,0 +1,43 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/rate_limiter_demo.dir/src/config_manager/config_manager.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/config_manager/config_manager.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/controller/rate_limit_controller.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/controller/rate_limit_controller.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/decision_engine/decision_engine.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/decision_engine/decision_engine.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/decision_engine/feature_extractor.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/decision_engine/feature_extractor.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/event_bus/event_consumer.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/event_bus/event_consumer.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/event_bus/event_producer.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/event_bus/event_producer.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/local_cache/local_cache.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/local_cache/local_cache.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/main.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/main.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/metrics/aggregator.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/metrics/aggregator.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/metrics/metrics.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/metrics/metrics.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/metrics/metrics_exporter.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/metrics/metrics_exporter.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/rate_limiter/rate_limiter.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/rate_limiter/rate_limiter.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/redis_client/redis_client.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/redis_client/redis_client.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/rule_engine/rule_engine.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/rule_engine/rule_engine.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/rule_engine/rule_handler.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/rule_engine/rule_handler.cpp.obj.d"
+  "CMakeFiles/rate_limiter_demo.dir/src/service/rate_limit_service.cpp.obj"
+  "CMakeFiles/rate_limiter_demo.dir/src/service/rate_limit_service.cpp.obj.d"
+  "librate_limiter_demo.dll.a"
+  "rate_limiter_demo.exe"
+  "rate_limiter_demo.exe.manifest"
+  "rate_limiter_demo.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/rate_limiter_demo.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

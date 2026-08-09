@@ -1,0 +1,43 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/unit_test.dir/src/config_manager/config_manager.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/config_manager/config_manager.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/controller/rate_limit_controller.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/controller/rate_limit_controller.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/decision_engine/decision_engine.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/decision_engine/decision_engine.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/decision_engine/feature_extractor.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/decision_engine/feature_extractor.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/event_bus/event_consumer.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/event_bus/event_consumer.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/event_bus/event_producer.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/event_bus/event_producer.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/local_cache/local_cache.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/local_cache/local_cache.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/metrics/aggregator.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/metrics/aggregator.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/metrics/metrics.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/metrics/metrics.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/metrics/metrics_exporter.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/metrics/metrics_exporter.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/rate_limiter/rate_limiter.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/rate_limiter/rate_limiter.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/redis_client/redis_client.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/redis_client/redis_client.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/rule_engine/rule_engine.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/rule_engine/rule_engine.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/rule_engine/rule_handler.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/rule_engine/rule_handler.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/src/service/rate_limit_service.cpp.obj"
+  "CMakeFiles/unit_test.dir/src/service/rate_limit_service.cpp.obj.d"
+  "CMakeFiles/unit_test.dir/test/unit_test.cpp.obj"
+  "CMakeFiles/unit_test.dir/test/unit_test.cpp.obj.d"
+  "libunit_test.dll.a"
+  "unit_test.exe"
+  "unit_test.exe.manifest"
+  "unit_test.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/unit_test.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
