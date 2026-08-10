@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Acceptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Channel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\EventLoop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\InetAddress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\LoopThreadPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\SelectPoller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TcpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TcpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TimerWheel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\build\cmakefiles\4.2.1\compileridcxx\CMakeCXXCompilerId.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\config_manager\config_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\controller\rate_limit_controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\decision_engine\decision_engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\decision_engine\feature_extractor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\event_bus\event_consumer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\event_bus\event_producer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\local_cache\local_cache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\metrics\aggregator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\metrics\metrics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\metrics\metrics_exporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\rate_limiter\rate_limiter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\redis_client\redis_client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\rule_engine\rule_engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\rule_engine\rule_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\src\service\rate_limit_service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\test\benchmark.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rate_limiter\test\unit_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\http\Http.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Acceptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Any.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Callbacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Channel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\EventLoop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\InetAddress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\LoopThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Poller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\SelectPoller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TcpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TcpServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TimerWheel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\common\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\config_manager\config_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\controller\rate_limit_controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\decision_engine\decision_engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\decision_engine\feature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\decision_engine\feature_extractor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\decision_engine\risk_rule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\event\risk_event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\event_bus\event_consumer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\event_bus\event_producer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\event_bus\event_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\local_cache\local_cache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\metrics\aggregator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\metrics\metrics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\metrics\metrics_exporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\rate_limiter\rate_limiter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\redis_client\redis_client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\rule_engine\rule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\rule_engine\rule_engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\rule_engine\rule_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rate_limiter\include\service\rate_limit_service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="rate_limiter\build\cmakefiles\4.2.1\CMakeDetermineCompilerABI_CXX.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

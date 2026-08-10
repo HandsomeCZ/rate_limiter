@@ -1,6 +1,6 @@
-﻿#include "net/EventLoop.h"
+#include "net/EventLoop.h"
 #include "net/Channel.h"
-#include "net/SelectPoller.h"
+#include "net/EpollPoller.h"
 #include "net/Socket.h"
 #include <cassert>
 #include <iostream>
@@ -41,7 +41,7 @@ static sockfd_t createWakeupFd() {
 
 EventLoop::EventLoop()
     : quit_(false), looping_(false),
-      poller_(new SelectPoller(this)),
+      poller_(new EpollPoller(this)),
       callingPendingFunctors_(false) {
     wakeupFd_ = createWakeupFd();
     wakeupChannel_.reset(new Channel(this, wakeupFd_));

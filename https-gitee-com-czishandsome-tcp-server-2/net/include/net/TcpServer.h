@@ -2,11 +2,15 @@
 #include "net/Callbacks.h"
 #include "net/InetAddress.h"
 #include "net/Acceptor.h"
+#include "net/Any.h"
+
 #include <map>
 #include <string>
 #include <atomic>
+#include <functional>
 
 class EventLoop;
+class LoopThreadPool;
 
 class TcpServer {
 public:
@@ -17,6 +21,8 @@ public:
     TcpServer& operator=(const TcpServer&) = delete;
 
     void start();
+    void setThreadPool(LoopThreadPool* pool) { threadPool_ = pool; }
+    void setThreadInitCallback(const std::function<void(EventLoop*)>& cb) { threadInitCallback_ = cb; }
 
     void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; }
     void setMessageCallback(const MessageCallback& cb) { messageCallback_ = cb; }
@@ -38,4 +44,6 @@ private:
 
     std::atomic<int> nextConnId_;
     std::map<std::string, TcpConnectionPtr> connections_;
+    LoopThreadPool* threadPool_ = nullptr;
+    std::function<void(EventLoop*)> threadInitCallback_;
 };

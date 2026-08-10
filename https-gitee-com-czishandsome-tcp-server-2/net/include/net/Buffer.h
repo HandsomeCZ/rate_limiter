@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <vector>
 #include <string>
 #include <cstring>
@@ -12,6 +12,8 @@ public:
         : buffer_(initialSize), readIndex_(0), writeIndex_(0) {}
 
     size_t readableBytes() const { return writeIndex_ - readIndex_; }
+    size_t ReadAbleSize() const { return readableBytes(); }  // alias for Http.hpp compat
+    void MoveReadOffset(size_t len) { retrieve(len); }       // alias for Http.hpp compat
     size_t writableBytes() const { return buffer_.size() - writeIndex_; }
     size_t prependableBytes() const { return readIndex_; }
 

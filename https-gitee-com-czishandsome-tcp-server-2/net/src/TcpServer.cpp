@@ -1,4 +1,5 @@
-﻿#include "net/TcpServer.h"
+#include "net/TcpServer.h"
+#include "net/LoopThreadPool.h"
 #include "net/TcpConnection.h"
 #include "net/EventLoop.h"
 
@@ -18,8 +19,11 @@ void TcpServer::newConnection(sockfd_t fd, const InetAddress& peerAddr) {
     snprintf(buf, sizeof(buf), "%s#%d", name_.c_str(), nextConnId_.fetch_add(1));
     std::string connName = buf;
 
+    // Round-robin dispatch to worker EventLoop
+    EventLoop* ioLoop = threadPool_ ? threadPool_->getNextLoop() : loop_;
+
     InetAddress localAddr(0); // placeholder
-    TcpConnectionPtr conn = std::make_shared<TcpConnection>(loop_, connName, fd, localAddr, peerAddr);
+    TcpConnectionPtr conn = std::make_shared<TcpConnection>(ioLoop, connName, fd, localAddr, peerAddr);
     connections_[connName] = conn;
     conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
@@ -29,10 +33,19 @@ void TcpServer::newConnection(sockfd_t fd, const InetAddress& peerAddr) {
 }
 
 void TcpServer::removeConnection(const TcpConnectionPtr& conn) {
-    loop_->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
+    // Remove from connections_ map on base loop (thread-safe centralized map)
+    loop_->runInLoop([this, conn]() {
+        connections_.erase(conn->name());
+    });
+    // Destroy the connection on its own EventLoop
+    conn->getLoop()->runInLoop([conn]() {
+        conn->connectDestroyed();
+    });
 }
 
 void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn) {
     connections_.erase(conn->name());
-    conn->connectDestroyed();
+    conn->getLoop()->runInLoop([conn]() {
+        conn->connectDestroyed();
+    });
 }

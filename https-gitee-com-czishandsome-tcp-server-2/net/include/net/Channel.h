@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <functional>
 #include <memory>
 
@@ -18,6 +18,8 @@ public:
     int events() const { return events_; }
     int revents() const { return revents_; }
     bool isNoneEvent() const { return events_ == kNoneEvent; }
+    bool isReading() const { return events_ & kReadEvent; }
+    bool isWriting() const { return events_ & kWriteEvent; }
 
     void setRevents(int revt) { revents_ = revt; }
     void setReadCallback(EventCallback cb) { readCallback_ = std::move(cb); }

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{6A59A654-EA42-F503-2456-FD31022FC963}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Acceptor.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Buffer.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Channel.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\EventLoop.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\InetAddress.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\LoopThreadPool.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\SelectPoller.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Socket.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TcpConnection.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TcpServer.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TimerWheel.cpp" />
+    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\src\main.cpp" />
+    <ClCompile Include="rate_limiter\build\cmakefiles\4.2.1\compileridcxx\CMakeCXXCompilerId.cpp" />
+    <ClCompile Include="rate_limiter\src\config_manager\config_manager.cpp" />
+    <ClCompile Include="rate_limiter\src\controller\rate_limit_controller.cpp" />
+    <ClCompile Include="rate_limiter\src\decision_engine\decision_engine.cpp" />
+    <ClCompile Include="rate_limiter\src\decision_engine\feature_extractor.cpp" />
+    <ClCompile Include="rate_limiter\src\event_bus\event_consumer.cpp" />
+    <ClCompile Include="rate_limiter\src\event_bus\event_producer.cpp" />
+    <ClCompile Include="rate_limiter\src\local_cache\local_cache.cpp" />
+    <ClCompile Include="rate_limiter\src\main.cpp" />
+    <ClCompile Include="rate_limiter\src\metrics\aggregator.cpp" />
+    <ClCompile Include="rate_limiter\src\metrics\metrics.cpp" />
+    <ClCompile Include="rate_limiter\src\metrics\metrics_exporter.cpp" />
+    <ClCompile Include="rate_limiter\src\rate_limiter\rate_limiter.cpp" />
+    <ClCompile Include="rate_limiter\src\redis_client\redis_client.cpp" />
+    <ClCompile Include="rate_limiter\src\rule_engine\rule_engine.cpp" />
+    <ClCompile Include="rate_limiter\src\rule_engine\rule_handler.cpp" />
+    <ClCompile Include="rate_limiter\src\service\rate_limit_service.cpp" />
+    <ClCompile Include="rate_limiter\test\benchmark.cpp" />
+    <ClCompile Include="rate_limiter\test\unit_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\http\Http.hpp" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Acceptor.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Any.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Buffer.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Callbacks.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Channel.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\EventLoop.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\InetAddress.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\LoopThreadPool.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Poller.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\SelectPoller.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Socket.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TcpConnection.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TcpServer.h" />
+    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TimerWheel.h" />
+    <ClInclude Include="rate_limiter\include\common\common.h" />
+    <ClInclude Include="rate_limiter\include\config_manager\config_manager.h" />
+    <ClInclude Include="rate_limiter\include\controller\rate_limit_controller.h" />
+    <ClInclude Include="rate_limiter\include\decision_engine\decision_engine.h" />
+    <ClInclude Include="rate_limiter\include\decision_engine\feature.h" />
+    <ClInclude Include="rate_limiter\include\decision_engine\feature_extractor.h" />
+    <ClInclude Include="rate_limiter\include\decision_engine\risk_rule.h" />
+    <ClInclude Include="rate_limiter\include\event\risk_event.h" />
+    <ClInclude Include="rate_limiter\include\event_bus\event_consumer.h" />
+    <ClInclude Include="rate_limiter\include\event_bus\event_producer.h" />
+    <ClInclude Include="rate_limiter\include\event_bus\event_queue.h" />
+    <ClInclude Include="rate_limiter\include\local_cache\local_cache.h" />
+    <ClInclude Include="rate_limiter\include\metrics\aggregator.h" />
+    <ClInclude Include="rate_limiter\include\metrics\metrics.h" />
+    <ClInclude Include="rate_limiter\include\metrics\metrics_exporter.h" />
+    <ClInclude Include="rate_limiter\include\rate_limiter\rate_limiter.h" />
+    <ClInclude Include="rate_limiter\include\redis_client\redis_client.h" />
+    <ClInclude Include="rate_limiter\include\rule_engine\rule.h" />
+    <ClInclude Include="rate_limiter\include\rule_engine\rule_engine.h" />
+    <ClInclude Include="rate_limiter\include\rule_engine\rule_handler.h" />
+    <ClInclude Include="rate_limiter\include\service\rate_limit_service.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="rate_limiter\build\cmakefiles\4.2.1\CMakeDetermineCompilerABI_CXX.bin" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

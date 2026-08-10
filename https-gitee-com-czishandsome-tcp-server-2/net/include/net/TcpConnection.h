@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "net/Callbacks.h"
 #include "net/Buffer.h"
 #include "net/InetAddress.h"
 #include "net/Socket.h"
+#include "net/Any.h"
 #include <memory>
 #include <string>
 
@@ -23,6 +24,7 @@ public:
     EventLoop* getLoop() const { return loop_; }
     const std::string& name() const { return name_; }
     const InetAddress& peerAddr() const { return peerAddr_; }
+    sockfd_t fd() const { return socket_->fd(); }
 
     void connectEstablished();
     void connectDestroyed();
@@ -55,6 +57,11 @@ private:
 
     Buffer inputBuffer_;
     Buffer outputBuffer_;
+    Any context_;  // type-erased user context (HttpContext, etc.)
+
+public:
+    template<typename T> void setContext(const T& ctx) { context_ = ctx; }
+    Any* getContext() { return &context_; }
 
     ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;

@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // main.cpp — 合并入口: muduo风格 HTTP 服务器 + 限流风控
 //
 // 架构: HttpServer → OnMessage → RateLimitService.process() → Route
@@ -14,6 +14,8 @@
 #include "redis_client/redis_client.h"
 #include "decision_engine/decision_engine.h"
 #include "decision_engine/feature_extractor.h"
+#include "net/LoopThreadPool.h"
+#include "net/TimerWheel.h"
 
 #include <iostream>
 #include <csignal>
@@ -120,10 +122,23 @@ int main(int argc, char* argv[]) {
     DecisionEngine* engine = nullptr;
     RateLimitService* rateLimiter = initRateLimiter(redis, cache, limiter, pipeline, engine);
 
-    // 创建 HTTP 服务器
+    // 创建 HTTP 服务器 (内部有自己的 EventLoop + TcpServer)
     HttpServer server(port, 10);
     g_server = &server;
-    server.SetThreadCount(4);
+
+    // 线程数可从命令行指定: ./server 8080 8
+    int threadCount = (argc > 2) ? std::stoi(argv[2]) : std::thread::hardware_concurrency();
+    if (threadCount < 1) threadCount = 1;
+
+    // 创建线程池 (one loop per thread)
+    LoopThreadPool threadPool(server.getLoop());
+    threadPool.setThreadCount(threadCount);
+    threadPool.start();
+    std::cout << "[INFO] ThreadPool started with " << threadCount << " worker threads" << std::endl;
+    server.setThreadPool(&threadPool);
+
+    // 创建时间轮 (60秒一圈, 用于连接空闲超时)
+    TimerWheel timerWheel(server.getLoop(), 60);
 
     // === 注入限流器 ===
     server.SetRateLimiter(rateLimiter);
