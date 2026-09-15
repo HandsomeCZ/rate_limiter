@@ -74,9 +74,7 @@ Browser
 │   ├── src/                 #   实现
 │   ├── test/                #   单元测试 + 压测
 │   ├── scripts/             #   Lua 脚本（滑动窗口）
-│   ├── docs/                #   模块文档
 │   └── CMakeLists.txt       #   独立构建（demo/unit_test/benchmark）
-├── docs/                    # 项目文档（面试问答、优化报告、指南）
 ├── rate_limiter.sln         # VS2022 解决方案（可选，CMake 亦可生成）
 └── .gitignore
 ```
@@ -171,7 +169,7 @@ Layer 3 Decision → "怎么处理？"  ThresholdConfig（ALLOW/LIMIT/CHALLENGE/
 
 ## 性能优化要点
 
-本项目在网络层与业务层做了系统性的正确性修复与性能优化，详见 [docs/优化分析报告.md](docs/优化分析报告.md)，要点包括：
+本项目在网络层与业务层做了系统性的正确性修复与性能优化，要点包括：
 
 - `Buffer` 用 readv/WSARecv + 64KB 栈缓冲，避免大报文多次 read 与缓冲满误判关闭
 - `Acceptor` 循环 accept 直到 EAGAIN，应对突发建连
@@ -179,15 +177,6 @@ Layer 3 Decision → "怎么处理？"  ThresholdConfig（ALLOW/LIMIT/CHALLENGE/
 - `TimerWheel` 绝对 deadline（修 delay ≥ capacity 环绕）+ 原子计数器 ID
 - `KeyBuilder` reserve+append 替代 ostringstream，热路径去堆分配
 - HTTP 请求行/头/body 大小上限，防内存 DoS
-
----
-
-## 参考文档
-
-- [docs/面试问答全集.md](docs/面试问答全集.md) — 网络层 + 业务层高频面试问答
-- [docs/优化分析报告.md](docs/优化分析报告.md) — 完整代码审查与优化记录
-- [docs/project-guide.md](docs/project-guide.md) — 零基础项目讲解
-- [rate_limiter/docs/风控模块.md](rate_limiter/docs/风控模块.md) — 风控模块详细设计
 
 ---
 

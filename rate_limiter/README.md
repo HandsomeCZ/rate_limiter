@@ -308,11 +308,6 @@ redis-server &           # 启动 Redis
 rate_limiter/
 ├── README.md
 ├── CMakeLists.txt
-├── docs/
-│   ├── trace_a_request.md          # ★ 跟着一个请求走完全流程
-│   ├── design_decisions.md         # 10 条设计决策 + 量化依据
-│   ├── class_design.md             # 类设计草案（与实际实现有差异）
-│   └── interview_guide.md          # 面试讲解模板 + 高频追问
 ├── scripts/
 │   └── rate_limit.lua              # 滑动窗口 Lua 脚本
 ├── include/
