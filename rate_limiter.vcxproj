@@ -28,21 +28,25 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
+    <IncludePath>$(ProjectDir)server;$(ProjectDir)server\http;$(ProjectDir)server\net\include;$(ProjectDir)rate_limiter\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
+    <IncludePath>$(ProjectDir)server;$(ProjectDir)server\http;$(ProjectDir)server\net\include;$(ProjectDir)rate_limiter\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
+    <IncludePath>$(ProjectDir)server;$(ProjectDir)server\http;$(ProjectDir)server\net\include;$(ProjectDir)rate_limiter\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
+    <IncludePath>$(ProjectDir)server;$(ProjectDir)server\http;$(ProjectDir)server\net\include;$(ProjectDir)rate_limiter\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -76,62 +80,75 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Acceptor.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Buffer.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Channel.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\EventLoop.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\InetAddress.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\LoopThreadPool.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\SelectPoller.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\Socket.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TcpConnection.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TcpServer.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\net\src\TimerWheel.cpp" />
-    <ClCompile Include="https-gitee-com-czishandsome-tcp-server-2\src\main.cpp" />
-    <ClCompile Include="rate_limiter\build\cmakefiles\4.2.1\compileridcxx\CMakeCXXCompilerId.cpp" />
+    <ClCompile Include="server\net\src\Acceptor.cpp" />
+    <ClCompile Include="server\net\src\Buffer.cpp" />
+    <ClCompile Include="server\net\src\Channel.cpp" />
+    <ClCompile Include="server\net\src\EventLoop.cpp" />
+    <ClCompile Include="server\net\src\InetAddress.cpp" />
+    <ClCompile Include="server\net\src\LoopThreadPool.cpp" />
+    <ClCompile Include="server\net\src\SelectPoller.cpp" />
+    <ClCompile Include="server\net\src\Socket.cpp" />
+    <ClCompile Include="server\net\src\TcpConnection.cpp" />
+    <ClCompile Include="server\net\src\TcpServer.cpp" />
+    <ClCompile Include="server\net\src\TimerWheel.cpp" />
+    <ClCompile Include="server\src\main.cpp" />
     <ClCompile Include="rate_limiter\src\config_manager\config_manager.cpp" />
     <ClCompile Include="rate_limiter\src\controller\rate_limit_controller.cpp" />
     <ClCompile Include="rate_limiter\src\decision_engine\decision_engine.cpp" />
@@ -139,34 +156,33 @@
     <ClCompile Include="rate_limiter\src\event_bus\event_consumer.cpp" />
     <ClCompile Include="rate_limiter\src\event_bus\event_producer.cpp" />
     <ClCompile Include="rate_limiter\src\local_cache\local_cache.cpp" />
-    <ClCompile Include="rate_limiter\src\main.cpp" />
     <ClCompile Include="rate_limiter\src\metrics\aggregator.cpp" />
     <ClCompile Include="rate_limiter\src\metrics\metrics.cpp" />
     <ClCompile Include="rate_limiter\src\metrics\metrics_exporter.cpp" />
+    <ClCompile Include="rate_limiter\src\rate_limiter\local_rate_limiter.cpp" />
     <ClCompile Include="rate_limiter\src\rate_limiter\rate_limiter.cpp" />
     <ClCompile Include="rate_limiter\src\redis_client\redis_client.cpp" />
+    <ClCompile Include="rate_limiter\src\redis_client\hiredis_stub.cpp" />
     <ClCompile Include="rate_limiter\src\rule_engine\rule_engine.cpp" />
     <ClCompile Include="rate_limiter\src\rule_engine\rule_handler.cpp" />
     <ClCompile Include="rate_limiter\src\service\rate_limit_service.cpp" />
-    <ClCompile Include="rate_limiter\test\benchmark.cpp" />
-    <ClCompile Include="rate_limiter\test\unit_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\http\Http.hpp" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Acceptor.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Any.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Buffer.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Callbacks.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Channel.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\EventLoop.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\InetAddress.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\LoopThreadPool.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Poller.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\SelectPoller.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\Socket.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TcpConnection.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TcpServer.h" />
-    <ClInclude Include="https-gitee-com-czishandsome-tcp-server-2\net\include\net\TimerWheel.h" />
+    <ClInclude Include="server\http\Http.hpp" />
+    <ClInclude Include="server\net\include\net\Acceptor.h" />
+    <ClInclude Include="server\net\include\net\Any.h" />
+    <ClInclude Include="server\net\include\net\Buffer.h" />
+    <ClInclude Include="server\net\include\net\Callbacks.h" />
+    <ClInclude Include="server\net\include\net\Channel.h" />
+    <ClInclude Include="server\net\include\net\EventLoop.h" />
+    <ClInclude Include="server\net\include\net\InetAddress.h" />
+    <ClInclude Include="server\net\include\net\LoopThreadPool.h" />
+    <ClInclude Include="server\net\include\net\Poller.h" />
+    <ClInclude Include="server\net\include\net\SelectPoller.h" />
+    <ClInclude Include="server\net\include\net\Socket.h" />
+    <ClInclude Include="server\net\include\net\TcpConnection.h" />
+    <ClInclude Include="server\net\include\net\TcpServer.h" />
+    <ClInclude Include="server\net\include\net\TimerWheel.h" />
     <ClInclude Include="rate_limiter\include\common\common.h" />
     <ClInclude Include="rate_limiter\include\config_manager\config_manager.h" />
     <ClInclude Include="rate_limiter\include\controller\rate_limit_controller.h" />

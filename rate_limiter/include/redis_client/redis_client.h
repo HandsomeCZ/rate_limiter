@@ -139,6 +139,10 @@ public:
                     const std::vector<std::string>& keys,
                     const std::vector<std::string>& args);
 
+    // 基础操作（用于本地限流器同步）
+    bool incrBy(const std::string& key, uint32_t count);
+    bool expire(const std::string& key, uint32_t seconds);
+
     bool isAvailable();
 
 private:
@@ -146,4 +150,6 @@ private:
     std::atomic<bool> circuitOpen_{false};  // 熔断状态
     std::atomic<int> consecutiveFailures_{0};
     int circuitThreshold_ = 10;
+    std::atomic<int64_t> circuitOpenedAtMs_{0};  // 熔断打开时刻（用于冷却恢复）
+    int circuitBreakerTimeoutMs_ = 5000;         // 熔断冷却时间，超时后半开探测
 };

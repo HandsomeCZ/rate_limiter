@@ -29,9 +29,9 @@
 #include <memory>
 
 class LocalCache;
-class RateLimiterFacade;
+class LocalRateLimiter;
 class RedisClient;
-class Stats;
+struct Stats;
 class FeatureExtractorPipeline;
 class DecisionEngine;
 class EventProducer;  // NEW
@@ -39,7 +39,7 @@ class EventProducer;  // NEW
 class RateLimitService {
 public:
     RateLimitService(LocalCache* cache,
-                     RateLimiterFacade* limiter,
+                     LocalRateLimiter* limiter,
                      RedisClient* redis,
                      FeatureExtractorPipeline* featurePipeline,
                      DecisionEngine* decisionEngine);
@@ -72,7 +72,7 @@ private:
                           uint64_t latencyUs);
 
     LocalCache*               cache_;
-    RateLimiterFacade*        limiter_;
+    LocalRateLimiter*         limiter_;
     RedisClient*              redis_;
     FeatureExtractorPipeline* featurePipeline_;
     DecisionEngine*           decisionEngine_;

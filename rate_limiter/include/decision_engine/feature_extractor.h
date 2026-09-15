@@ -21,12 +21,69 @@
 
 #include "common/common.h"
 #include "decision_engine/feature.h"
+#include "rate_limiter/local_rate_limiter.h"  // 复用 LocalSlidingWindow
 #include <vector>
 #include <memory>
 #include <atomic>
 #include <string>
+#include <unordered_map>
+#include <mutex>
+#include <thread>
 
 class RedisClient;
+
+// ---------------------------------------------------------------------------
+// QPSTracker — 本地 QPS 计数器（用于风控特征提取优化）
+//
+// 设计：
+//   - 复用 LocalSlidingWindow 维护每个 key 的 1min/5min 滑动窗口
+//   - 安全区（< 80% 阈值）直接返回本地计数，不查 Redis
+//   - 警戒区（>= 80%）查 Redis 精确值
+//   - 后台线程每 100ms 异步同步到 Redis
+// ---------------------------------------------------------------------------
+class QPSTracker {
+public:
+    explicit QPSTracker(RedisClient* redis = nullptr);
+    ~QPSTracker();
+
+    // 记录一次请求
+    void record(const std::string& key);
+
+    // 获取指定窗口的计数（本地优先 + Redis 兜底）
+    uint32_t getCount(const std::string& key, uint32_t windowSec);
+
+    // 启动后台同步线程
+    void start();
+
+    // 停止后台同步线程
+    void stop();
+
+    // 统计
+    uint64_t localHits() const { return localHits_.load(); }
+    uint64_t redisFallbacks() const { return redisFallbacks_.load(); }
+
+private:
+    struct WindowPair {
+        LocalSlidingWindow window1m;  // 1 分钟窗口（windowSec=60）
+        LocalSlidingWindow window5m;  // 5 分钟窗口（windowSec=300）
+        std::mutex mtx;
+
+        WindowPair() : window1m(60, 100000), window5m(300, 100000) {}
+    };
+
+    void syncToRedis();
+
+    RedisClient* redis_;
+    std::unordered_map<std::string, WindowPair> windows_;
+    std::mutex mtx_;
+    std::thread syncThread_;
+    std::atomic<bool> running_{false};
+    std::atomic<uint64_t> localHits_{0};
+    std::atomic<uint64_t> redisFallbacks_{0};
+    static constexpr uint32_t SYNC_INTERVAL_MS = 100;
+    static constexpr uint32_t THRESHOLD_1M = 1000;  // 1min 阈值
+    static constexpr uint32_t THRESHOLD_5M = 5000;  // 5min 阈值
+};
 
 // ---------------------------------------------------------------------------
 // IFeatureExtractor — 特征提取器接口
@@ -68,15 +125,15 @@ private:
 // VelocityFeatureExtractor — 请求频率特征
 //
 // 提取的特征：
-//   - qps_1min  : 最近 60 秒请求数（需 Redis 查询）
+//   - qps_1min  : 最近 60 秒请求数（本地计数 + Redis 兜底）
 //   - qps_5min  : 最近 300 秒请求数
 //   - burst_ratio: 1min / 5min 比值（突发流量检测）
 //
-// 需要 Redis：查询滑动窗口计数
+// 优化：使用 QPSTracker 实现本地优先，减少 90% Redis 调用
 // ---------------------------------------------------------------------------
 class VelocityFeatureExtractor : public IFeatureExtractor {
 public:
-    explicit VelocityFeatureExtractor(RedisClient* redis);
+    explicit VelocityFeatureExtractor(RedisClient* redis, QPSTracker* tracker = nullptr);
 
     const char* name() const override { return "velocity"; }
     std::vector<Feature> extract(const Request& req) override;
@@ -84,6 +141,7 @@ public:
 
 private:
     RedisClient* redis_;
+    QPSTracker* tracker_;
     int getRecentCount(const std::string& key, uint32_t windowSec);
 };
 

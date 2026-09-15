@@ -27,14 +27,7 @@ void Metrics::record(const RiskEvent& event) {
     if (!event.triggeredRuleIds.empty()) {
         std::lock_guard<std::mutex> lock(ruleMutex_);
         for (auto ruleId : event.triggeredRuleIds) {
-            auto it = ruleHits_.find(ruleId);
-            if (it == ruleHits_.end()) {
-                // 首次命中该规则，动态创建计数器
-                auto* ptr = new std::atomic<uint64_t>(1);
-                ruleHits_[ruleId] = ptr;
-            } else {
-                it->second->fetch_add(1);
-            }
+            ++ruleHits_[ruleId];  // operator[] 缺省插入 0 再自增
         }
     }
 
@@ -45,7 +38,7 @@ void Metrics::record(const RiskEvent& event) {
 uint64_t Metrics::ruleHitCount(uint64_t ruleId) const {
     std::lock_guard<std::mutex> lock(ruleMutex_);
     auto it = ruleHits_.find(ruleId);
-    return (it != ruleHits_.end()) ? it->second->load() : 0;
+    return (it != ruleHits_.end()) ? it->second : 0;
 }
 
 std::vector<std::pair<uint64_t, uint64_t>> Metrics::ruleHitSnapshot() const {
@@ -53,7 +46,7 @@ std::vector<std::pair<uint64_t, uint64_t>> Metrics::ruleHitSnapshot() const {
     std::vector<std::pair<uint64_t, uint64_t>> result;
     result.reserve(ruleHits_.size());
     for (auto& kv : ruleHits_) {
-        result.emplace_back(kv.first, kv.second->load());
+        result.emplace_back(kv.first, kv.second);
     }
     return result;
 }
@@ -64,7 +57,6 @@ void Metrics::reset() {
 
     {
         std::lock_guard<std::mutex> lock(ruleMutex_);
-        for (auto& kv : ruleHits_) delete kv.second;
         ruleHits_.clear();
     }
 

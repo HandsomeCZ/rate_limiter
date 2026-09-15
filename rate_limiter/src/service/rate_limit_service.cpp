@@ -1,7 +1,7 @@
 // Service层实现：4阶段风控+限流流水线编排（FastPath → Feature → Score → Dispatch）
 #include "service/rate_limit_service.h"
 #include "local_cache/local_cache.h"
-#include "rate_limiter/rate_limiter.h"
+#include "rate_limiter/local_rate_limiter.h"
 #include "redis_client/redis_client.h"
 #include "decision_engine/feature_extractor.h"
 #include "event/risk_event.h"
@@ -9,7 +9,7 @@
 #include <chrono>
 
 RateLimitService::RateLimitService(LocalCache* cache,
-                                   RateLimiterFacade* limiter,
+                                   LocalRateLimiter* limiter,
                                    RedisClient* redis,
                                    FeatureExtractorPipeline* featurePipeline,
                                    DecisionEngine* decisionEngine)
@@ -87,7 +87,7 @@ Decision RateLimitService::process(const Request& req) {
         features = featurePipeline_->extractAll(req);
     }
 
-    auto limitRules = cache_->getRules(req);
+    auto limitRules = cache_->getRules(req);//limitrules中就是后面要进行限流检查的限流规则
 
     // ═══════════════════════════════════════════════════════════════════
     // Phase 2 + 3: Rule Matching + Risk Scoring
@@ -96,7 +96,7 @@ Decision RateLimitService::process(const Request& req) {
     bool hasRiskDecision = false;
 
     if (decisionEngine_ && !features.empty()) {
-        auto riskRules = cache_->getRiskRules(req);
+        auto riskRules = cache_->getRiskRules(req);//就是评分触发规则，根据这些规则判断是否触发评分
         if (!riskRules.empty()) {
             riskResult = decisionEngine_->evaluate(riskRules, features);
             hasRiskDecision = true;
@@ -196,6 +196,7 @@ Decision RateLimitService::processRateLimitOnly(const Request& req) {
 
     for (const auto& rule : rules) {
         if (!limiter_->checkRule(req, rule, stats_)) {
+            stats_.recordReject();
             auto us = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::steady_clock::now() - t0).count();
             publishRiskEvent(req, Decision::REJECT, 0, 0, {},
@@ -203,6 +204,8 @@ Decision RateLimitService::processRateLimitOnly(const Request& req) {
             return Decision::REJECT;
         }
     }
+
+    stats_.recordAllow();
 
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now() - t0).count();

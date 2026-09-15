@@ -9,7 +9,12 @@ C++17 实现的双引擎（风控评分 + 限流）系统，支持单机 **10w Q
 ### 1. 检查环境
 
 ```bash
-g++ --version   # 需要 GCC 8+ / Clang 10+（Windows 上使用 MinGW-w64）
+# Linux
+g++ --version   # 需要 GCC 8+
+cmake --version # 需要 3.14+
+
+# Windows (MSVC)
+cl --version    # Visual Studio 2019+
 cmake --version # 需要 3.14+
 ```
 
@@ -22,38 +27,40 @@ sudo apt install libhiredis-dev cmake g++
 # macOS
 brew install hiredis cmake
 
-# Windows (MinGW-w64)
-#   hiredis 无预编译包，从源码编译安装（2 分钟）：
-git clone --depth 1 https://github.com/redis/hiredis.git /tmp/hiredis
-cd /tmp/hiredis && mkdir build && cd build
-cmake .. -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=/你的MinGW安装路径
-cmake --build .
-cmake --install .
+# Windows (vcpkg)
+vcpkg install hiredis:x64-windows
 ```
 
 ### 3. 编译
 
 ```bash
-cd rate_limiter
-mkdir build && cd build
-
 # Linux / macOS
+./build.sh              # Release 编译
+./build.sh debug        # Debug 编译
+./build.sh run          # 编译并运行
+./build.sh test         # 编译并运行单元测试
+./build.sh bench        # 编译并运行压测
+
+# Windows
+build.bat               # Release 编译
+build.bat debug         # Debug 编译
+build.bat run           # 编译并运行
+build.bat test          # 编译并运行单元测试
+build.bat bench         # 编译并运行压测
+
+# 手动编译（通用）
+mkdir build && cd build
 cmake ..
-
-# Windows (MinGW-w64) — 需指定生成器 + hiredis 安装路径
-cmake .. -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=/你的MinGW安装路径
-
-# 统一构建命令
 cmake --build .
 ```
 
 编译产出三个可执行文件：
 
-| 文件 | 用途 |
-|------|------|
+| 文件                | 用途                                    |
+| ------------------- | --------------------------------------- |
 | `rate_limiter_demo` | 演示程序：10w 请求压测，输出 QPS/拒绝率 |
-| `unit_test` | 单元测试（10 个用例，**无需 Redis**） |
-| `benchmark` | 可配置的压测工具 |
+| `unit_test`         | 单元测试（10 个用例，**无需 Redis**）   |
+| `benchmark`         | 可配置的压测工具                        |
 
 ### 4. 先跑单元测试（不需要 Redis）
 
@@ -109,19 +116,7 @@ Duration: 2212ms
 
 如果 Redis 没启动，程序会自动降级运行（输出 `[WARN] Redis not available`）。
 
----
 
-## 建议阅读顺序
-
-| 步骤 | 文件 |  | 目的 |
-|------|------|------|------|
-| 1 | [docs/trace_a_request.md](docs/trace_a_request.md) |  | 跟一个请求走完所有代码，建立调用链心智模型 |
-| 2 | [src/service/rate_limit_service.cpp](src/service/rate_limit_service.cpp) |  | 核心业务编排——4 阶段流水线 |
-| 3 | [include/decision_engine/decision_engine.h](include/decision_engine/decision_engine.h) |  | 风控评分引擎——Feature → Score → Decision 三层 |
-| 4 | [include/rate_limiter/rate_limiter.h](include/rate_limiter/rate_limiter.h) |  | 限流器——固定窗口/滑动窗口/分片 |
-| 5 | [docs/design_decisions.md](docs/design_decisions.md) |  | 10 条设计决策，每条含量化依据 |
-
-之后按需深入其他模块（EventBus、Metrics、LocalCache、RedisClient）。
 
 ---
 
@@ -131,9 +126,9 @@ Duration: 2212ms
 
 API 网关收到请求后，两个引擎**串联**工作：
 
-| 阶段 | 问题 | 引擎 |
-|------|------|------|
-| 风控评分 | "这个请求有多大风险？" | DecisionEngine（多特征 → 评分 → 分级） |
+| 阶段     | 问题                     | 引擎                                   |
+| -------- | ------------------------ | -------------------------------------- |
+| 风控评分 | "这个请求有多大风险？"   | DecisionEngine（多特征 → 评分 → 分级） |
 | 频率控制 | "这个请求还能来多少次？" | RateLimiter（计数 → 阈值 → 放行/拒绝） |
 
 ### 性能目标
@@ -206,24 +201,7 @@ graph TB
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### 每个模块一句话
 
-| 模块 | 职责 |
-|------|------|
-| **Controller** | 门卫——校验参数，委托 Service |
-| **Service** | 导演——编排 Feature → Score → Limit → Event 全流程 |
-| **FeatureExtractor** | 侦察兵——从请求中提取风险信号（QPS、时间、API 敏感度） |
-| **DecisionEngine** | 法官——根据规则+特征打分，判定风险等级 |
-| **RateLimiter** | 计数器——Redis ZSet + Lua 原子判定频率 |
-| **RuleEngine** | 规则匹配——责任链模式，匹配适用的限流/风控规则 |
-| **LocalCache** | 快照——1 秒刷新规则配置，免去每次加锁读取 |
-| **ConfigManager** | 配置中心——单例，管理所有可调参数 |
-| **RedisClient** | 存储层——32 连接池 + Lua 原子执行 + 熔断 |
-| **EventBus** | 快递员——异步投递事件，不阻塞主链路 |
-| **Metrics** | 仪表盘——原子计数器 + 滑动窗口 + Prometheus 导出 |
-| **MetricsExporter** | 暴露 `/metrics` 端点供 Prometheus pull |
-
----
 
 ## 请求处理流程
 
@@ -275,14 +253,14 @@ Layer 3: Decision     → "怎么处理？"  ThresholdConfig（可热加载）
 
 ### 限流算法
 
-| 算法 | 实现 | Redis 操作 |
-|------|------|-----------|
-| 固定窗口 | `FixedWindowLimiter` | INCR + EXPIRE（两次命令） |
+| 算法     | 实现                   | Redis 操作                          |
+| -------- | ---------------------- | ----------------------------------- |
+| 固定窗口 | `FixedWindowLimiter`   | INCR + EXPIRE（两次命令）           |
 | 滑动窗口 | `SlidingWindowLimiter` | Lua 脚本（ZSet 原子操作，1 次往返） |
 
 ### 热点 Key 分片
 
-不分片时热点用户单 ZSet key 成为瓶颈 → **16 分片**将压力降到 1/16。每个分片配额 = 总配额 / 16，写入随机选分片，误差 ±6.25%。
+不分片时热点用户单 ZSet key 成为瓶颈 → **16 分片**将压力降到 1/16。每个分片配额 = 总配额 / 16，写入随机选分片。
 
 ### 降级策略（三层）
 
@@ -359,4 +337,3 @@ rate_limiter/
     ├── benchmark.cpp
     └── unit_test.cpp
 ```
-

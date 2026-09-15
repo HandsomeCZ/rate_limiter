@@ -26,6 +26,10 @@ void RuleEngine::setBlacklist(const std::unordered_set<std::string>& bl) {
 }
 
 RuleMatchResult RuleEngine::match(const Request& req) const {
+    // 读取共享状态（whitelist_/blacklist_/rules_）前必须加共享锁，
+    // 否则与 loadRules/setWhitelist/setBlacklist 的写入构成数据竞争。
+    std::shared_lock lock(mutex_);
+
     RuleMatchResult result;
     result.timestampMs = nowMs();
 

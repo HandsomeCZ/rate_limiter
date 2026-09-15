@@ -1,0 +1,31 @@
+# ============ 构建产物 ============
+build/
+build_check/
+x64/
+.vs/
+*.exe
+*.dll
+*.lib
+*.obj
+*.o
+*.pdb
+*.suo
+*.vsidx
+*.ipch
+*.db
+*.user
+cmake-build-*/
+
+# ============ IDE ============
+.vscode/
+.idea/
+
+# ============ 日志 ============
+*.log
+*.txt
+
+# ============ 个人求职材料（非项目文件，不提交）============
+*.py
+so_results*.json
+resume_text.txt
+程卓-2027届C++投递清单.md

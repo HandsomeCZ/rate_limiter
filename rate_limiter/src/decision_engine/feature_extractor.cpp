@@ -5,6 +5,91 @@
 #include <cmath>
 
 // ============================================================================
+// QPSTracker — 本地 QPS 计数器（复用 LocalSlidingWindow）
+// ============================================================================
+
+QPSTracker::QPSTracker(RedisClient* redis)
+    : redis_(redis) {}
+
+QPSTracker::~QPSTracker() { stop(); }
+
+void QPSTracker::record(const std::string& key) {
+    uint64_t nowMs = ::nowMs();
+    std::lock_guard<std::mutex> lock(mtx_);
+    auto& pair = windows_[key];
+    pair.window1m.checkAndRecord(nowMs);
+    pair.window5m.checkAndRecord(nowMs);
+}
+
+uint32_t QPSTracker::getCount(const std::string& key, uint32_t windowSec) {
+    uint64_t nowMs = ::nowMs();
+    std::lock_guard<std::mutex> lock(mtx_);
+    auto it = windows_.find(key);
+    if (it == windows_.end()) return 0;
+
+    LocalSlidingWindow* window = nullptr;
+    uint32_t threshold = 0;
+    if (windowSec == 60) {
+        window = &it->second.window1m;
+        threshold = THRESHOLD_1M;
+    } else {
+        window = &it->second.window5m;
+        threshold = THRESHOLD_5M;
+    }
+
+    // 1. 获取本地计数
+    uint32_t localCount = static_cast<uint32_t>(window->count(nowMs));
+
+    // 2. 安全区（< 80%）：直接返回本地计数
+    uint32_t safeThreshold = static_cast<uint32_t>(threshold * 0.8);
+    if (localCount < safeThreshold) {
+        localHits_.fetch_add(1, std::memory_order_relaxed);
+        return localCount;
+    }
+
+    // 3. 警戒区（>= 80%）：查 Redis 精确值
+    if (redis_ && redis_->isAvailable()) {
+        redisFallbacks_.fetch_add(1, std::memory_order_relaxed);
+        int64_t redisCount = redis_->fixedWindowIncr(key, windowSec);
+        return (redisCount >= 0) ? static_cast<uint32_t>(redisCount) : localCount;
+    }
+
+    // 4. Redis 不可用：返回本地计数（降级）
+    return localCount;
+}
+
+void QPSTracker::start() {
+    if (running_.exchange(true) || !redis_) return;
+    syncThread_ = std::thread(&QPSTracker::syncToRedis, this);
+}
+
+void QPSTracker::stop() {
+    if (!running_.exchange(false)) return;
+    if (syncThread_.joinable()) syncThread_.join();
+}
+
+void QPSTracker::syncToRedis() {
+    while (running_.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(SYNC_INTERVAL_MS));
+        std::lock_guard<std::mutex> lock(mtx_);
+        for (auto& [key, pair] : windows_) {
+            // 只同步增量，避免每个周期重复累加全量计数（原 bug）
+            uint32_t delta1m = static_cast<uint32_t>(pair.window1m.takePending());
+            uint32_t delta5m = static_cast<uint32_t>(pair.window5m.takePending());
+            if (delta1m > 0) {
+                redis_->incrBy(key, delta1m);
+                redis_->expire(key, 60);
+            }
+            if (delta5m > 0) {
+                std::string key5m = key + ":5min";
+                redis_->incrBy(key5m, delta5m);
+                redis_->expire(key5m, 300);
+            }
+        }
+    }
+}
+
+// ============================================================================
 // StaticFeatureExtractor
 // ============================================================================
 
@@ -68,13 +153,17 @@ std::vector<Feature> StaticFeatureExtractor::extract(const Request& req) {
 // VelocityFeatureExtractor
 // ============================================================================
 
-VelocityFeatureExtractor::VelocityFeatureExtractor(RedisClient* redis)
-    : redis_(redis) {}
+VelocityFeatureExtractor::VelocityFeatureExtractor(RedisClient* redis, QPSTracker* tracker)
+    : redis_(redis), tracker_(tracker) {}
 
 int VelocityFeatureExtractor::getRecentCount(const std::string& key,
                                               uint32_t windowSec) {
+    // 优先使用 QPSTracker（本地 + Redis 兜底）
+    if (tracker_) {
+        return static_cast<int>(tracker_->getCount(key, windowSec));
+    }
+    // 降级：直接查 Redis
     if (!redis_ || !redis_->isAvailable()) return 0;
-    // 复用 Redis 固定窗口计数
     int64_t count = redis_->fixedWindowIncr(key, windowSec);
     return (count >= 0) ? static_cast<int>(count) : 0;
 }
@@ -83,19 +172,15 @@ std::vector<Feature> VelocityFeatureExtractor::extract(const Request& req) {
     std::vector<Feature> result;
     result.reserve(3);
 
-    // 如果 Redis 不可用，返回空（降级）
-    if (!redis_ || !redis_->isAvailable()) {
-        // 降级：返回默认安全值
-        result.push_back(Feature::make("qps_1min",   0, 0.3, name()));
-        result.push_back(Feature::make("qps_5min",   0, 0.1, name()));
-        result.push_back(Feature::make("burst_ratio", 0, 1.0, name()));
-        return result;
-    }
-
     // 构造 Redis key（user 维度）
     std::string key1min = KeyBuilder::build(LimitType::USER,
                                              req.userId, req.api);
     std::string key5min = key1min + ":5min";
+
+    // 记录本次请求到 QPSTracker
+    if (tracker_) {
+        tracker_->record(key1min);
+    }
 
     int qps1 = getRecentCount(key1min, 60);
     int qps5 = getRecentCount(key5min, 300);

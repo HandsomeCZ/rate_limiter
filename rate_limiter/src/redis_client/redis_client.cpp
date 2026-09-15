@@ -363,11 +363,50 @@ int64_t RedisClient::evalInt(const std::string& script,
     return reply.integer();
 }
 
+bool RedisClient::incrBy(const std::string& key, uint32_t count) {
+    auto conn = pool_->borrow();
+    if (!conn) { consecutiveFailures_++; return false; }
+
+    auto reply = conn->exec("INCRBY %s %u", key.c_str(), count);
+    pool_->recycle(conn);
+
+    if (!reply.ok()) { consecutiveFailures_++; return false; }
+    consecutiveFailures_ = 0;
+    return true;
+}
+
+bool RedisClient::expire(const std::string& key, uint32_t seconds) {
+    auto conn = pool_->borrow();
+    if (!conn) { consecutiveFailures_++; return false; }
+
+    auto reply = conn->exec("EXPIRE %s %u", key.c_str(), seconds);
+    pool_->recycle(conn);
+
+    if (!reply.ok()) { consecutiveFailures_++; return false; }
+    consecutiveFailures_ = 0;
+    return true;
+}
+
 bool RedisClient::isAvailable() {
-    // 熔断检查
-    if (consecutiveFailures_ >= circuitThreshold_) {
+    // 熔断状态机：CLOSED → (连续失败达阈值) → OPEN → (冷却超时) → 半开探测 → CLOSED/OPEN
+    if (consecutiveFailures_.load(std::memory_order_relaxed) >= circuitThreshold_) {
         circuitOpen_ = true;
-        return false;
+        int64_t now = static_cast<int64_t>(nowMs());
+        int64_t openedAt = circuitOpenedAtMs_.load(std::memory_order_relaxed);
+        if (openedAt == 0) {
+            // 首次触发熔断，记录打开时刻
+            circuitOpenedAtMs_.store(now, std::memory_order_relaxed);
+        } else if (now - openedAt >= circuitBreakerTimeoutMs_) {
+            // 冷却结束 → 半开：重置计数，允许下一次调用真正探测 Redis
+            consecutiveFailures_.store(0, std::memory_order_relaxed);
+            circuitOpenedAtMs_.store(0, std::memory_order_relaxed);
+            circuitOpen_ = false;
+            // 原实现这里会永远停留在熔断态，因为熔断后所有调用都 fail-open 短路，
+            // 失败计数永远不会被清零 → 永远无法恢复。现已修复为可自愈。
+        } else {
+            // 冷却中，直接判不可用（fail-open，不探测）
+            return false;
+        }
     }
     circuitOpen_ = false;
     return pool_->healthy();

@@ -4,21 +4,22 @@
 #include <algorithm>
 
 SlidingWindowAggregator::SlidingWindowAggregator() {
-    currentSec_ = nowSec();
+    currentSec_.store(nowSec(), std::memory_order_relaxed);
 }
 
 SlidingWindowAggregator::Bucket& SlidingWindowAggregator::currentBucket() {
     uint64_t now = nowSec();
 
     // 秒数推进 → 清理中间跳过的 bucket
-    if (now != currentSec_) {
+    if (now != currentSec_.load(std::memory_order_relaxed)) {
         std::lock_guard<std::mutex> lock(mtx_);
-        if (now != currentSec_) {  // double-check
+        if (now != currentSec_.load(std::memory_order_relaxed)) {  // double-check
             // 清理从 currentSec_+1 到 now 之间的 bucket
-            for (uint64_t t = currentSec_ + 1; t <= now; ++t) {
+            for (uint64_t t = currentSec_.load(std::memory_order_relaxed) + 1;
+                 t <= now; ++t) {
                 buckets_[t % BUCKET_COUNT].reset();
             }
-            currentSec_ = now;
+            currentSec_.store(now, std::memory_order_relaxed);
         }
     }
 
@@ -53,5 +54,5 @@ void SlidingWindowAggregator::reset() {
     for (int i = 0; i < BUCKET_COUNT; ++i) {
         buckets_[i].reset();
     }
-    currentSec_ = nowSec();
+    currentSec_.store(nowSec(), std::memory_order_relaxed);
 }

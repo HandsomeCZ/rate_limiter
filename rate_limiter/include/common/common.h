@@ -8,6 +8,7 @@
 
 #include <string>
 #include <cstdint>
+#include <cstring>
 #include <atomic>
 #include <chrono>
 #include <sstream>
@@ -81,15 +82,36 @@ enum class Algorithm {
 // Redis Key 构建器
 //   格式: limit:{type}:{id}:{api}
 //   示例: limit:user:10086:/api/v1/order
+//
+// 性能：用 reserve + append 拼接，避免 ostringstream 内部缓冲 + 多次小对象堆分配。
+//   这是限流热路径（每请求都会拼 key），ostringstream 是已知的性能杀手。
 // ---------------------------------------------------------------------------
+// 小整数转字符串（栈缓冲，避免 std::to_string/ostringstream 的堆分配）
+inline void appendU32(std::string& out, uint64_t v) {
+    char buf[24];
+    int n = 0;
+    do { buf[n++] = char('0' + (v % 10)); v /= 10; } while (v);
+    for (int i = 0, j = n - 1; i < j; ++i, --j) {
+        char c = buf[i]; buf[i] = buf[j]; buf[j] = c;
+    }
+    out.append(buf, static_cast<size_t>(n));
+}
+
 struct KeyBuilder {
     // 基础 key
     static std::string build(LimitType type,
                              const std::string& id,
                              const std::string& api) {
-        std::ostringstream oss;
-        oss << "limit:" << limitTypeStr(type) << ":" << id << ":" << api;
-        return oss.str();
+        const char* t = limitTypeStr(type);
+        std::string key;
+        key.reserve(6 + std::strlen(t) + 1 + id.size() + 1 + api.size());
+        key.append("limit:");
+        key.append(t);
+        key.push_back(':');
+        key.append(id);
+        key.push_back(':');
+        key.append(api);
+        return key;
     }
 
     // 分片 key
@@ -97,10 +119,18 @@ struct KeyBuilder {
                                    const std::string& id,
                                    const std::string& api,
                                    uint32_t shardIdx) {
-        std::ostringstream oss;
-        oss << "limit:" << limitTypeStr(type) << ":"
-            << id << ":" << api << ":" << shardIdx;
-        return oss.str();
+        const char* t = limitTypeStr(type);
+        std::string key;
+        key.reserve(6 + std::strlen(t) + 1 + id.size() + 1 + api.size() + 1 + 8);
+        key.append("limit:");
+        key.append(t);
+        key.push_back(':');
+        key.append(id);
+        key.push_back(':');
+        key.append(api);
+        key.push_back(':');
+        appendU32(key, shardIdx);
+        return key;
     }
 };
 

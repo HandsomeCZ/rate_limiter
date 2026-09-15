@@ -64,11 +64,10 @@ public:
 
 private:
     Bucket& currentBucket();
-    void advanceBucket(uint64_t nowSec);
 
     Bucket buckets_[BUCKET_COUNT];
     mutable std::mutex mtx_;
-    uint64_t currentSec_ = 0;
+    std::atomic<uint64_t> currentSec_{0};  // 原子避免 currentBucket 无锁读与推进写之间的数据竞争
 };
 
 // 便捷函数

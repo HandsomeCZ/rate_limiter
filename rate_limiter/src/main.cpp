@@ -2,23 +2,44 @@
 // main.cpp — 系统启动入口（示例）
 //
 // 展示依赖注入与初始化顺序
+// 支持 Linux/Windows 双平台
 // ============================================================================
 
 #include "controller/rate_limit_controller.h"
 #include "service/rate_limit_service.h"
-#include "rate_limiter/rate_limiter.h"
+#include "rate_limiter/local_rate_limiter.h"
 #include "local_cache/local_cache.h"
 #include "config_manager/config_manager.h"
 #include "redis_client/redis_client.h"
 #include "decision_engine/decision_engine.h"
 #include "decision_engine/feature_extractor.h"
+#include "event_bus/event_queue.h"
+#include "event_bus/event_producer.h"
+#include "event_bus/event_consumer.h"
+#include "metrics/metrics.h"
+#include "metrics/metrics_exporter.h"
 
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <csignal>
+
+// 全局标志：优雅退出
+static std::atomic<bool> g_running{true};
+
+void signalHandler(int signum) {
+    std::cout << "\n[Signal " << signum << "] Shutting down gracefully...\n";
+    g_running.store(false);
+}
 
 int main() {
     std::cout << "=== Rate Limit System Starting ===\n";
+
+    // 注册信号处理（优雅退出）
+    std::signal(SIGINT, signalHandler);
+#ifndef _WIN32
+    std::signal(SIGTERM, signalHandler);
+#endif
 
     // 1. 配置管理器
     auto& cfg = ConfigManager::instance();
@@ -82,33 +103,46 @@ int main() {
         std::cout << "[WARN] Redis not available, running degraded\n";
     }
 
-    // 4. 限流器门面（16 分片）
-    RateLimiterFacade limiter(&redis, 16);
+    // 4. 限流器（本地 + Redis 兜底）
+    LocalRateLimiter limiter(redisOk ? &redis : nullptr, 100);
+    limiter.start();
 
-    // 5. 特征提取器流水线
+    // 5. QPSTracker（风控特征提取优化：本地计数 + Redis 兜底）
+    auto qpsTracker = std::make_unique<QPSTracker>(redisOk ? &redis : nullptr);
+    qpsTracker->start();
+
+    // 6. 特征提取器流水线
     FeatureExtractorPipeline featurePipeline;
     featurePipeline.add(std::make_unique<StaticFeatureExtractor>());
     if (redisOk) {
-        featurePipeline.add(std::make_unique<VelocityFeatureExtractor>(&redis));
+        featurePipeline.add(std::make_unique<VelocityFeatureExtractor>(&redis, qpsTracker.get()));
     }
 
-    // 6. 决策引擎
+    // 7. 决策引擎
     DecisionEngine decisionEngine;
 
-    // 7. 服务层（5 参数构造函数）
+    // 8. EventBus 初始化（异步事件上报）
+    BoundedEventQueue eventQueue(10000);
+    EventProducer eventProducer(&eventQueue);
+    EventConsumer eventConsumer(&eventQueue, &Metrics::instance());
+    eventConsumer.start();
+    std::cout << "[EventBus] started (capacity=" << eventQueue.capacity() << ")\n";
+
+    // 9. 服务层（5 参数构造函数）
     RateLimitService service(&cache, &limiter, &redis,
                              &featurePipeline, &decisionEngine);
+    service.setEventProducer(&eventProducer);
 
-    // 8. 控制器
+    // 10. 控制器
     RateLimitController controller(&service);
 
     std::cout << "=== System Ready ===\n\n";
 
-    // 7. 模拟请求
+    // 10. 模拟请求
     const int N = 100000;
     auto start = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < N && g_running.load(); ++i) {
         std::string uid = "user_" + std::to_string(i % 100);
         std::string ip  = "192.168.1." + std::to_string(i % 50);
         std::string api = (i % 3 == 0) ? "/api/v1/order" : "/api/v1/user/info";
@@ -120,10 +154,11 @@ int main() {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     auto& s = controller.stats();
-    double qps = (double)s.total.load() * 1000.0 / ms;
+    double qps = (ms > 0) ? (double)s.total.load() * 1000.0 / ms : 0;
     double rejectRate = s.total.load() > 0
         ? (double)s.rejected.load() / s.total.load() * 100.0 : 0.0;
 
+    std::cout << "\n=== Performance Report ===\n";
     std::cout << "Requests: " << s.total.load() << "\n";
     std::cout << "Allowed:  " << s.allowed.load() << "\n";
     std::cout << "Rejected: " << s.rejected.load() << "\n";
@@ -132,6 +167,36 @@ int main() {
     std::cout << "Degraded: " << s.degraded.load() << "\n";
     std::cout << "Duration: " << ms << "ms\n";
 
+    // 11. 输出 Metrics 统计
+    std::cout << "\n=== Metrics Report ===\n";
+    std::cout << "Total:     " << Metrics::instance().total() << "\n";
+    std::cout << "Allowed:   " << Metrics::instance().allowed() << "\n";
+    std::cout << "Rejected:  " << Metrics::instance().rejected() << "\n";
+    std::cout << "Intercept: " << Metrics::instance().slidingWindow().interceptRate(60) * 100 << "%\n";
+
+    // 规则命中统计
+    auto ruleHits = Metrics::instance().ruleHitSnapshot();
+    if (!ruleHits.empty()) {
+        std::cout << "Rule Hits:\n";
+        for (const auto& [ruleId, count] : ruleHits) {
+            std::cout << "  rule[" << ruleId << "]: " << count << "\n";
+        }
+    }
+
+    // 12. 导出监控数据（Prometheus 格式）
+    MetricsExporter exporter(&Metrics::instance());
+    std::cout << "\n=== Prometheus Metrics ===\n";
+    std::cout << exporter.toPrometheusText();
+
+    // 13. 优雅退出
+    std::cout << "\n=== Shutting Down ===\n";
+    eventConsumer.stop();
+    std::cout << "[EventConsumer] stopped (consumed=" << eventConsumer.consumed() << ")\n";
+    std::cout << "[EventQueue] pushed=" << eventQueue.totalPushed()
+              << ", dropped=" << eventQueue.totalDropped()
+              << ", popped=" << eventQueue.totalPopped() << "\n";
     cache.stop();
+
+    std::cout << "=== System Stopped ===\n";
     return 0;
 }

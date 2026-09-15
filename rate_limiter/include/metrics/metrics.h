@@ -66,8 +66,9 @@ private:
     std::atomic<uint64_t> reject_{0};
 
     // 规则命中计数（ruleId → count）
+    // 所有读写都在 ruleMutex_ 保护下，因此用普通 uint64_t 即可，无需 atomic + 手动 new
     mutable std::mutex ruleMutex_;
-    std::unordered_map<uint64_t, std::atomic<uint64_t>*> ruleHits_;
+    std::unordered_map<uint64_t, uint64_t> ruleHits_;
 
     // 滑动窗口聚合器
     std::unique_ptr<SlidingWindowAggregator> sliding_;
