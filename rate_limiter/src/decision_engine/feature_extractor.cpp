@@ -47,10 +47,10 @@ uint32_t QPSTracker::getCount(const std::string& key, uint32_t windowSec) {
         return localCount;
     }
 
-    // 3. 警戒区（>= 80%）：查 Redis 精确值
+    // 3. 警戒区（>= 80%）：查 Redis 精确值（只读，不写入；Redis 计数由同步线程维护）
     if (redis_ && redis_->isAvailable()) {
         redisFallbacks_.fetch_add(1, std::memory_order_relaxed);
-        int64_t redisCount = redis_->fixedWindowIncr(key, windowSec);
+        int64_t redisCount = redis_->slidingWindowCount(key, windowSec);
         return (redisCount >= 0) ? static_cast<uint32_t>(redisCount) : localCount;
     }
 
@@ -77,13 +77,12 @@ void QPSTracker::syncToRedis() {
             uint32_t delta1m = static_cast<uint32_t>(pair.window1m.takePending());
             uint32_t delta5m = static_cast<uint32_t>(pair.window5m.takePending());
             if (delta1m > 0) {
-                redis_->incrBy(key, delta1m);
-                redis_->expire(key, 60);
+                // 写入与 getCount 兜底校验相同的 ZSet，统一滑动窗口语义
+                redis_->slidingWindowRecord(key, 60, delta1m);
             }
             if (delta5m > 0) {
                 std::string key5m = key + ":5min";
-                redis_->incrBy(key5m, delta5m);
-                redis_->expire(key5m, 300);
+                redis_->slidingWindowRecord(key5m, 300, delta5m);
             }
         }
     }

@@ -124,10 +124,17 @@ public:
     // 返回 -1 = 错误, >=0 = 当前计数
     int64_t fixedWindowIncr(const std::string& key, uint32_t windowSec);
 
-    // 滑动窗口：Lua 脚本原子判定
+    // 滑动窗口：Lua 脚本原子判定（写入 + 判定，用于独立限流门面）
     // 返回 true = 允许
     bool slidingWindowCheck(const std::string& key,
                             uint32_t windowSec, uint32_t maxReq);
+
+    // 滑动窗口只读计数（ZREMRANGEBYSCORE + ZCARD，不写入）——本地限流兜底校验用
+    // 返回 -1 = 错误，>=0 = 当前窗口内计数
+    int64_t slidingWindowCount(const std::string& key, uint32_t windowSec);
+
+    // 滑动窗口批量写入（ZADD count 个成员）——本地限流增量同步用
+    bool slidingWindowRecord(const std::string& key, uint32_t windowSec, uint32_t count);
 
     // 分片滑动窗口
     bool slidingWindowShardCheck(const std::string& baseKey,

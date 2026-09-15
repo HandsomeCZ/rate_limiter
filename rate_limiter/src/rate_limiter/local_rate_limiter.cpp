@@ -45,18 +45,19 @@ bool LocalRateLimiter::checkWithQuota(const Request& req, const Rule& rule, uint
     // 2. 警戒区：Redis 精确校验（网络 I/O 在锁外执行）
     if (needRedis && redis_ && redis_->isAvailable()) {
         redisFallbacks_.fetch_add(1, std::memory_order_relaxed);
-        bool redisAllowed = redis_->slidingWindowCheck(key, rule.windowSec, customQuota);
-
+        // 只读校验（不写入）：Redis 计数由后台同步线程增量写入，这里只查窗口内计数，
+        // 与同步共用同一个 ZSet key，避免「读计数带副作用」和 WRONGTYPE 冲突。
+        int64_t redisCount = redis_->slidingWindowCount(key, rule.windowSec);
+        if (redisCount >= 0 && static_cast<uint64_t>(redisCount) >= customQuota) {
+            localRejected_.fetch_add(1, std::memory_order_relaxed);
+            return false;  // 跨机精确计数已满 → 拒绝
+        }
+        // 放行（redisCount < 0 表示读失败，fail-open）
         std::lock_guard<std::mutex> lock(shard.mtx);
         auto& window = getOrCreateWindow(shard, key, rule.windowSec, customQuota);
-        if (redisAllowed) {
-            window.checkAndRecord(nowMs);  // 同步记录到本地
-            localAllowed_.fetch_add(1, std::memory_order_relaxed);
-            return true;
-        } else {
-            localRejected_.fetch_add(1, std::memory_order_relaxed);
-            return false;
-        }
+        window.checkAndRecord(nowMs);
+        localAllowed_.fetch_add(1, std::memory_order_relaxed);
+        return true;
     }
 
     // 3. Redis 不可用 → Fail-Open（默认放行）
@@ -149,16 +150,15 @@ void LocalRateLimiter::syncToRedis() {
                 // 只同步自上次以来的增量，避免每个周期重复累加全量窗口计数（原 bug）
                 uint32_t delta = static_cast<uint32_t>(window.takePending());
                 if (delta > 0) {
-                    // 用独立命名空间，避免与警戒区 slidingWindowCheck（ZSet）在同一 key 上
-                    // 执行 INCRBY（string）导致 Redis WRONGTYPE 错误。
-                    pending.push_back({key + ":sync", delta, window.windowSec_});
+                    // 与兜底校验共用同一个 key，写入同一个 ZSet，实现计数语义统一
+                    pending.push_back({key, delta, window.windowSec_});
                 }
             }
         }
 
         for (auto& p : pending) {
-            redis_->incrBy(p.key, p.delta);
-            redis_->expire(p.key, p.windowSec);
+            // 批量 ZADD 到与兜底校验相同的 ZSet，替代原来的 INCRBY string（WRONGTYPE 根因）
+            redis_->slidingWindowRecord(p.key, p.windowSec, p.delta);
         }
         redisSyncs_.fetch_add(1, std::memory_order_relaxed);
     }

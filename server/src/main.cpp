@@ -37,7 +37,8 @@ RateLimitService* initRateLimiter(RedisClient*& outRedis,
                                    LocalCache*& outCache,
                                    LocalRateLimiter*& outLimiter,
                                    FeatureExtractorPipeline*& outPipeline,
-                                   DecisionEngine*& outEngine)
+                                   DecisionEngine*& outEngine,
+                                   QPSTracker*& outTracker)
 {
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
@@ -101,12 +102,16 @@ RateLimitService* initRateLimiter(RedisClient*& outRedis,
     outLimiter = new LocalRateLimiter(redisOk ? outRedis : nullptr, 100);
     outLimiter->start();
 
-    // 5. 特征提取器
+    // 5. QPSTracker（风控特征提取优化：本地计数 + Redis 兜底）
+    outTracker = new QPSTracker(redisOk ? outRedis : nullptr);
+    outTracker->start();
+
+    // 6. 特征提取器
     outPipeline = new FeatureExtractorPipeline();
     outPipeline->add(std::make_unique<StaticFeatureExtractor>());
-    if (redisOk) outPipeline->add(std::make_unique<VelocityFeatureExtractor>(outRedis));
+    if (redisOk) outPipeline->add(std::make_unique<VelocityFeatureExtractor>(outRedis, outTracker));
 
-    // 6. 决策引擎
+    // 7. 决策引擎
     outEngine = new DecisionEngine();
 
     // 7. 服务�?
@@ -127,7 +132,8 @@ int main(int argc, char* argv[]) {
     LocalRateLimiter* limiter = nullptr;
     FeatureExtractorPipeline* pipeline = nullptr;
     DecisionEngine* engine = nullptr;
-    RateLimitService* rateLimiter = initRateLimiter(redis, cache, limiter, pipeline, engine);
+    QPSTracker* tracker = nullptr;
+    RateLimitService* rateLimiter = initRateLimiter(redis, cache, limiter, pipeline, engine, tracker);
 
     // 创建 HTTP 服务（内部有自己的 EventLoop + TcpServer）
     HttpServer server(port, 10);
@@ -214,6 +220,7 @@ int main(int argc, char* argv[]) {
     delete rateLimiter;
     delete engine;
     delete pipeline;
+    delete tracker;
     delete limiter;
     delete redis;
     delete cache;

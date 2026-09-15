@@ -254,6 +254,30 @@ redis.call('EXPIRE', KEYS[1], ttl)
 return 1
 )LUA";
 
+// 滑动窗口只读计数（清理过期 + ZCARD，不写入）
+// 用于本地限流兜底校验：避免「读计数」带副作用
+static const char* SLIDE_COUNT_LUA = R"LUA(
+local now    = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, now - window)
+return redis.call('ZCARD', KEYS[1])
+)LUA";
+
+// 滑动窗口批量写入（把本地增量 count 个请求以当前时间戳写入同一 ZSet）
+// 用于本地限流增量同步：与兜底校验共用同一个 key、同一种滑动窗口语义
+static const char* SLIDE_RECORD_LUA = R"LUA(
+local now    = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local count  = tonumber(ARGV[3])
+local ttl    = tonumber(ARGV[4])
+redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, now - window)
+for i = 1, count do
+    redis.call('ZADD', KEYS[1], now, 's' .. now .. '_' .. i)
+end
+redis.call('EXPIRE', KEYS[1], ttl)
+return 1
+)LUA";
+
 // ============================================================================
 // RedisClient
 // ============================================================================
@@ -315,6 +339,48 @@ bool RedisClient::slidingWindowCheck(const std::string& key,
     pool_->recycle(conn);
 
     if (!reply.ok()) { consecutiveFailures_++; return true; }
+    consecutiveFailures_ = 0;
+    return reply.integer() == 1;
+}
+
+int64_t RedisClient::slidingWindowCount(const std::string& key,
+                                        uint32_t windowSec) {
+    auto conn = pool_->borrow();
+    if (!conn) { consecutiveFailures_++; return -1; }
+
+    uint64_t now = nowMs();
+    std::vector<std::string> keys = {key};
+    std::vector<std::string> args = {
+        std::to_string(now),
+        std::to_string(windowSec * 1000ULL)
+    };
+
+    auto reply = conn->eval(SLIDE_COUNT_LUA, keys, args);
+    pool_->recycle(conn);
+
+    if (!reply.ok()) { consecutiveFailures_++; return -1; }
+    consecutiveFailures_ = 0;
+    return reply.integer();
+}
+
+bool RedisClient::slidingWindowRecord(const std::string& key,
+                                      uint32_t windowSec, uint32_t count) {
+    auto conn = pool_->borrow();
+    if (!conn) { consecutiveFailures_++; return false; }
+
+    uint64_t now = nowMs();
+    std::vector<std::string> keys = {key};
+    std::vector<std::string> args = {
+        std::to_string(now),
+        std::to_string(windowSec * 1000ULL),
+        std::to_string(count),
+        std::to_string(windowSec + 2)
+    };
+
+    auto reply = conn->eval(SLIDE_RECORD_LUA, keys, args);
+    pool_->recycle(conn);
+
+    if (!reply.ok()) { consecutiveFailures_++; return false; }
     consecutiveFailures_ = 0;
     return reply.integer() == 1;
 }
