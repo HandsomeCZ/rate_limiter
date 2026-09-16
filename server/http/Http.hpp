@@ -298,6 +298,7 @@ public:
 
     void SetBaseDir(const std::string& path) {
         assert(Util::IsDirectory(path)); _basedir = path;
+        _staticFilesEnabled = true;   // 显式启用后才做文件系统探测
     }
     void SetRateLimiter(RateLimitService* rl) { _rate_limiter = rl; }
     void setThreadPool(LoopThreadPool* pool) { _server.setThreadPool(pool); }
@@ -340,7 +341,11 @@ private:
     }
 
     // Static file handler
+    // 注意：只有显式调用 SetBaseDir 启用静态文件服务后才会做文件系统探测。
+    // 否则每个请求都要 stat()+open() 一次，在 Windows 上会被 Defender 实时扫描
+    // 放大到数百微秒（实测 345us -> 58us）。
     bool IsFileHandler(HttpRequest& req, HttpResponse* rsp) {
+        if (!_staticFilesEnabled) return false;
         std::string path = _basedir + req._path;
         if (req._path.back() == '/') path += "index.html";
         if (!Util::IsDirectory(path)) {
@@ -480,6 +485,7 @@ private:
     EventLoop _loop;
     TcpServer _server;
     std::string _basedir;
+    bool _staticFilesEnabled = false;   // 静态文件服务开关（默认关，避免每请求文件系统探测）
     int _threadCount = 1;
     RateLimitService* _rate_limiter;
 
