@@ -16,6 +16,11 @@
 #include "decision_engine/feature_extractor.h"
 #include "net/LoopThreadPool.h"
 #include "net/TimerWheel.h"
+#include "event_bus/event_queue.h"
+#include "event_bus/event_producer.h"
+#include "event_bus/event_consumer.h"
+#include "metrics/metrics.h"
+#include "metrics/metrics_exporter.h"
 
 #include <iostream>
 #include <csignal>
@@ -78,11 +83,13 @@ RateLimitService* initRateLimiter(RedisClient*& outRedis,
     cfg.addWhitelist("admin", "", "");
     cfg.addBlacklist("", "192.168.1.100", "");
 
-    // 加载风控规则
+    // 风控规则：触发条件必须引用特征提取器【实际产出】的特征名
+    // 可用特征名：qps_1min / qps_5min / burst_ratio（Velocity）、
+    //             api_sensitivity / time_hour_risk / account_age_days（Static）
     std::vector<RiskRule> riskRules;
-    RiskRule rr1; rr1.id = 101; rr1.name = "high_freq_ip";
+    RiskRule rr1; rr1.id = 101; rr1.name = "high_freq_user";
     rr1.priority = 1; rr1.score = 30; rr1.category = "behavior";
-    auto cond1 = std::make_shared<ThresholdCondition>("request_rate", ThresholdCondition::GE, 50);
+    auto cond1 = std::make_shared<ThresholdCondition>("qps_1min", ThresholdCondition::GE, 50);
     rr1.condition = cond1;
     riskRules.push_back(std::move(rr1));
 
@@ -109,7 +116,9 @@ RateLimitService* initRateLimiter(RedisClient*& outRedis,
     // 6. 特征提取器
     outPipeline = new FeatureExtractorPipeline();
     outPipeline->add(std::make_unique<StaticFeatureExtractor>());
-    if (redisOk) outPipeline->add(std::make_unique<VelocityFeatureExtractor>(outRedis, outTracker));
+    // 速度特征器始终添加：QPSTracker 本地滑动窗口即可计数，Redis 只是跨机兜底。
+    // 原实现只在 redisOk 时添加，导致降级模式下 qps 特征缺失、风控规则无法触发。
+    outPipeline->add(std::make_unique<VelocityFeatureExtractor>(outRedis, outTracker));
 
     // 7. 决策引擎
     outEngine = new DecisionEngine();
@@ -134,6 +143,16 @@ int main(int argc, char* argv[]) {
     DecisionEngine* engine = nullptr;
     QPSTracker* tracker = nullptr;
     RateLimitService* rateLimiter = initRateLimiter(redis, cache, limiter, pipeline, engine, tracker);
+
+    // === 异步数据回流（EventBus → Metrics）===
+    // 主链路同步返回后，RiskEvent 异步入队，后台线程消费并更新指标，绝不阻塞请求线程。
+    // 队列有界，满则静默丢弃（背压保护）。这三个对象在 main 栈上，生命周期覆盖整个服务运行期。
+    BoundedEventQueue eventQueue(65536);
+    EventProducer eventProducer(&eventQueue);
+    EventConsumer eventConsumer(&eventQueue, &Metrics::instance());
+    eventConsumer.start();
+    rateLimiter->setEventProducer(&eventProducer);
+    std::cout << "[EventBus] started (capacity=" << eventQueue.capacity() << ")\n";
 
     // 创建 HTTP 服务（内部有自己的 EventLoop + TcpServer）
     HttpServer server(port, 10);
@@ -197,6 +216,13 @@ int main(int argc, char* argv[]) {
         rsp->SetClose(false);
     });
 
+    // API: Prometheus 指标导出（由 EventBus 异步回流更新）
+    server.Get("/metrics", [](const HttpRequest& req, HttpResponse* rsp) {
+        MetricsExporter exporter;  // 默认绑定 Metrics::instance()
+        rsp->SetContent(exporter.toPrometheusText(), "text/plain");
+        rsp->SetClose(false);
+    });
+
     // 404 兜底
     server.Get("/.*", [](const HttpRequest& req, HttpResponse* rsp) {
         rsp->_statu = 404;
@@ -211,6 +237,7 @@ int main(int argc, char* argv[]) {
     std::cout << "    GET  /api/v1/order     - order query (strict limit)\n";
     std::cout << "    POST /api/v1/order     - create order\n";
     std::cout << "    GET  /api/v1/stats     - rate limit stats\n";
+    std::cout << "    GET  /metrics         - Prometheus metrics\n";
     std::cout << "  Static files: ./www/\n";
     std::cout << "====================================\n\n";
 

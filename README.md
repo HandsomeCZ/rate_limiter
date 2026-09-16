@@ -130,6 +130,7 @@ curl http://127.0.0.1:8080/api/v1/user/info     # 用户信息
 curl http://127.0.0.1:8080/api/v1/order         # 订单（严格限流：20 req/s）
 curl -X POST -d '{"a":1}' http://127.0.0.1:8080/api/v1/order
 curl http://127.0.0.1:8080/api/v1/stats         # 限流统计
+curl http://127.0.0.1:8080/metrics             # Prometheus 指标（异步回流）
 ```
 
 ---
